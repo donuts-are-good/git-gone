@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# Check if a file argument was provided
+if [ $# -eq 0 ]; then
+  echo "Please specify a file to remove from the Git history."
+  exit 1
+fi
+
+# Check if the current directory is a Git repository
+if [ ! -d ".git" ]; then
+  echo "Error: Not a Git repository. Please run the script in the root directory of your Git project."
+  exit 1
+fi
+
+# Check if there are unstaged changes
+if ! git diff-index --quiet HEAD --; then
+  echo "Stashing unstaged changes..."
+  git stash push -u --keep-index
+fi
+
+# Check if the specified file exists in the Git history
+file=$1
+if ! git ls-files --error-unmatch "$file" > /dev/null 2>&1; then
+  echo "Error: File '$file' not found in the Git history."
+  exit 1
+fi
+
+# Remove the specified file from the Git history
+git filter-branch --force --index-filter "git rm --cached --ignore-unmatch $file" --prune-empty --tag-name-filter cat -- --all
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to remove '$file' from the Git history."
+  exit 1
+fi
+
+# Remove all references to the removed files from the Git repository
+rm -rf .git/refs/original/
+git reflog expire --expire=now --all
+git gc --prune=now
+
+# Push the cleaned history to the remote repository
+git push origin --force --all
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to push the cleaned history to the remote repository."
+  exit 1
+fi
+
+# Report success
+echo "Success: '$file' has been removed from the Git history."
+
+# Check if there were unstaged changes
+if [ -n "$(git stash list)" ]; then
+  echo "Your unstaged changes were stashed. Use 'git stash apply' to retrieve them."
+fi

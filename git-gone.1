@@ -1,0 +1,26 @@
+NAME
+    git-gone - Purge a file from your Git history
+
+SYNOPSIS
+    git-gone filename.extension
+
+DESCRIPTION
+    git-gone removes a file from the Git history of a Git repository. The script must be run in the root directory of the Git repository.
+
+OPTIONS
+    filename.extension
+        The path and/or filename of the file to be removed from the Git history.
+
+RETURN VALUE
+    The script returns 0 on success, and a non-zero value on failure.
+
+ERRORS
+    If the current directory is not a Git repository, the script reports an error message and exits with a non-zero status code.
+    If the specified file does not exist in the Git history, the script reports an error message and exits with a non-zero status code.
+    If any of the Git operations fail, the script reports an error message and exits with a non-zero status code.
+
+AUTHOR
+    donuts-are-good
+
+COPYRIGHT
+    MIT license 2023 donuts-are-good
